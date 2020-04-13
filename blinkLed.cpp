@@ -28,15 +28,37 @@ void BlinkLed::init(byte pin, bool activeOnLow)
     }
 }
 
+// LED permanently on
+BlinkLed *BlinkLed::on()
+{
+    _nextIndex = BLINKLED_INDEX_HALTED;
+    if (NOT_A_PIN != _pin)
+    {
+        digitalWrite(_pin, _activeOn);
+    }
+    return this;
+}
+
+// LED permanently off
+BlinkLed *BlinkLed::off()
+{
+    _nextIndex = BLINKLED_INDEX_HALTED;
+    if (NOT_A_PIN != _pin)
+    {
+        digitalWrite(_pin, !_activeOn);
+    }
+    return this;
+}
+
 BlinkLed *BlinkLed::setBlink(const word millisOn, const word millisOff)
 {
     if (0 == millisOn)
     {
-        _nextIndex = BLINKLED_INDEX_HALTED;
-        if (NOT_A_PIN != _pin)
-        {
-            digitalWrite(_pin, !_activeOn);
-        }
+        return off();
+    }
+    else if (0 == millisOff)
+    {
+        return on();
     }
     else
     {
@@ -74,7 +96,7 @@ void BlinkLed::startBlink(const byte numPhases)
 {
     _timingLength = numPhases;
     _nextIndex = 1; // start with active phase
-    _nextUpdate = 0;
+    _lastUpdate = 0;
     update();
 }
 
@@ -83,15 +105,15 @@ void BlinkLed::update()
     if (NOT_A_PIN != _pin && BLINKLED_INDEX_HALTED != _nextIndex)
     {
         const unsigned long now = millis();
-        if (((long)now - _nextUpdate) >= 0)
+        if (now - _lastUpdate > _blinkTiming[_nextIndex])
         {
-            digitalWrite(_pin, _nextIndex % 2 ? _activeOn : !_activeOn);
-            _nextUpdate = now + _blinkTiming[_nextIndex];
             ++_nextIndex;
             if (_nextIndex >= _timingLength)
             {
                 _nextIndex = 0;
             }
+            digitalWrite(_pin, _nextIndex % 2 ? _activeOn : !_activeOn);
+            _lastUpdate = now;
         }
     }
 }

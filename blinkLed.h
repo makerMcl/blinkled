@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Matthias Clau√ü
+ * Copyright 2020 Matthias Clauﬂ
  * 
  * This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -15,6 +15,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <Arduino.h>
+
 #ifndef BLINK_LED_H
 #define BLINK_LED_H
 
@@ -27,7 +28,7 @@ private:
     byte _nextIndex = BLINKLED_INDEX_HALTED;
     word *_blinkTiming;
     byte _timingLength = 2;
-    unsigned long _nextUpdate = 0;
+    unsigned long _lastUpdate = 0;
     word _blinkTiming2[2] = {0, 0}; // for simple blinking, to avoid memory defragmentation with multiple calls of setBlink(int, int)
 
     void startBlink(const byte numPhases);
@@ -50,9 +51,14 @@ public:
 
     /**
      * Sets blink code, alternating between <i>millisOn</i> active led and <i>millisOff</i> inactive led.
-     * @param millisOn 0 is off, -1 is on forever
+     * @param millisOn 0 is off
+     * @param millisOff 0 is on forever
      */
+    // #ifndef OMMIT_DEFAULT_BLINK
     BlinkLed *setBlink(const word millisOn, const word millisOff);
+    // #endif
+    BlinkLed *off();
+    BlinkLed *on();
 
     /**
      * Sets special blink pattern with 2 alternating active phases.
@@ -66,8 +72,7 @@ public:
 
     BlinkLed *setBlinkPattern(word *blinkTiming, byte length);
 
-    /** Update Status of led. */
+    /** Update Status of LED. */
     void update();
 };
-
 #endif
