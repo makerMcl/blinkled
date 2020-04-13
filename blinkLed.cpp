@@ -60,7 +60,7 @@ BlinkLed *BlinkLed::setBlink(const word millisOn, const word millisOff)
     {
         return on();
     }
-    else
+    else if (2 != _timingLength || _blinkTiming[0] != millisOff || _blinkTiming2[1] != millisOn)
     {
         _blinkTiming2[0] = millisOff;
         _blinkTiming2[1] = millisOn;
@@ -81,13 +81,23 @@ BlinkLed *BlinkLed::setBlinkPattern(word *blinkTiming, const byte length)
 {
     if (0 == (length % 2))
     {
-        _blinkTiming = blinkTiming;
-        startBlink(length);
+        bool unmodified = (length == _timingLength);
+        int i = 0;
+        while (unmodified && i < length)
+        {
+            unmodified &= (blinkTiming[i] == _blinkTiming[i]);
+            ++i;
+        }
+        if (!unmodified)
+        {
+            _blinkTiming = blinkTiming;
+            startBlink(length);
+        }
         return this;
     }
     else
     {
-        // invalid argument, force an error!
+        // invalid argument, force an error when chained!
         return nullptr;
     }
 }
@@ -107,6 +117,7 @@ void BlinkLed::update()
         const unsigned long now = millis();
         if (now - _lastUpdate > _blinkTiming[_nextIndex])
         {
+            //Serial << "pin " << _pin << "=" << ((_nextIndex + 1) % 2) << ": delta=" << (now - _lastUpdate) << ", " << endl;
             ++_nextIndex;
             if (_nextIndex >= _timingLength)
             {
