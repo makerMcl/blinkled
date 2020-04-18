@@ -14,7 +14,9 @@
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifdef DEBUG
 #include <Streaming.h>
+#endif
 #include "blinkLed.h"
 
 void BlinkLed::init(byte pin, bool activeOnLow)
