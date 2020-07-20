@@ -22,11 +22,41 @@
 void BlinkLed::init(uint8_t pin, bool activeOnLow)
 {
     _pin = pin;
-    _activeOn = activeOnLow ? LOW : HIGH;
+    _activeOn = activeOnLow ? ACTIVE_LOW : ACTIVE_HIGH;
     if (_pin != NOT_A_PIN)
     {
+        if (TRISTATE_HIGH == _activeOn || TRISTATE_LOW == _activeOn)
+        {
+            pinMode(_pin, INPUT);
+        }
+        else
+        {
+            pinMode(_pin, OUTPUT);
+            digitalWrite(_pin, _activeOn == HIGH ? LOW : HIGH);
+        }
+    }
+}
+void BlinkLed::ledOn()
+{
+    if (TRISTATE_HIGH == _activeOn || TRISTATE_LOW == _activeOn)
+    {
         pinMode(_pin, OUTPUT);
-        digitalWrite(_pin, !_activeOn);
+        digitalWrite(_pin, _activeOn == TRISTATE_HIGH ? HIGH : LOW);
+    }
+    else
+    {
+        digitalWrite(_pin, _activeOn == ACTIVE_HIGH ? HIGH : LOW);
+    }
+}
+void BlinkLed::ledOff()
+{
+    if (TRISTATE_HIGH == _activeOn || TRISTATE_LOW == _activeOn)
+    {
+        pinMode(_pin, INPUT); // setting pin to neither high nor low
+    }
+    else
+    {
+        digitalWrite(_pin, _activeOn == ACTIVE_HIGH ? LOW : HIGH);
     }
 }
 
@@ -36,7 +66,7 @@ BlinkLed *BlinkLed::on()
     _nextIndex = BLINKLED_INDEX_HALTED;
     if (NOT_A_PIN != _pin)
     {
-        digitalWrite(_pin, _activeOn);
+        ledOn();
     }
     return this;
 }
@@ -47,7 +77,7 @@ BlinkLed *BlinkLed::off()
     _nextIndex = BLINKLED_INDEX_HALTED;
     if (NOT_A_PIN != _pin)
     {
-        digitalWrite(_pin, !_activeOn);
+        ledOff();
     }
     return this;
 }
@@ -104,6 +134,22 @@ BlinkLed *BlinkLed::setBlinkPattern(blinkDuration_t *blinkTiming, const uint8_t 
     }
 }
 
+BlinkLed *BlinkLed::blink(blinktype_t type, const blinkDuration_t millisOn, const blinkDuration_t millisOff)
+{
+    _activeOn = type;
+    return setBlink(millisOn, millisOff);
+}
+BlinkLed *BlinkLed::blinkPattern4(blinktype_t type, blinkDuration_t millis[4])
+{
+    _activeOn = type;
+    return setBlinkPattern4(millis);
+}
+BlinkLed *BlinkLed::blinkPattern(blinktype_t type, blinkDuration_t millis[4], const uint8_t length)
+{
+    _activeOn = type;
+    return setBlinkPattern(millis, length);
+}
+
 void BlinkLed::startBlink(const uint8_t numPhases)
 {
     _timingLength = numPhases;
@@ -125,7 +171,10 @@ void BlinkLed::update()
             {
                 _nextIndex = 0;
             }
-            digitalWrite(_pin, _nextIndex % 2 ? _activeOn : !_activeOn);
+            if (_nextIndex % 2)
+                ledOn();
+            else
+                ledOff();
             _lastUpdate = now;
         }
     }

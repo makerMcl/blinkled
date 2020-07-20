@@ -25,20 +25,31 @@
 
 #define BLINKLED_INDEX_HALTED 255
 typedef uint16_t blinkDuration_t;
+typedef enum
+{
+    ACTIVE_LOW,
+    ACTIVE_HIGH,
+    TRISTATE_LOW = 0x10,
+    TRISTATE_HIGH = 0x11,
+} blinktype_t;
 
-
+/**
+ * Two LEDs at one GPIO pin: one against Vcc, one against GND.
+ */
 class BlinkLed
 {
 private:
     uint8_t _pin = NOT_A_PIN;
-    uint8_t _activeOn;
+    blinktype_t _activeOn;
     uint8_t _nextIndex = BLINKLED_INDEX_HALTED;
-    blinkDuration_t *_blinkTiming=nullptr;
+    blinkDuration_t *_blinkTiming = nullptr;
     uint8_t _timingLength = 2;
     uint64_t _lastUpdate = 0;
     blinkDuration_t _blinkTiming2[2] = {0, 0}; // for simple blinking, to avoid memory fragmentation with multiple calls of setBlink(int, int)
 
     void startBlink(const uint8_t numPhases);
+    void ledOn();
+    void ledOff();
 
 public:
     void init()
@@ -65,6 +76,10 @@ public:
     BlinkLed *off();
     BlinkLed *on();
 
+    BlinkLed *blink(blinktype_t type, const blinkDuration_t millisOn, const blinkDuration_t millisOff);
+    BlinkLed *blinkPattern4(blinktype_t type, blinkDuration_t millis[4]);
+    BlinkLed *blinkPattern(blinktype_t type, blinkDuration_t millis[4], const uint8_t length);
+
     /**
      * Sets special blink pattern with 2 alternating active phases.
      * Times in milliseconds duration.
@@ -75,7 +90,7 @@ public:
      */
     BlinkLed *setBlinkPattern4(blinkDuration_t millis[4]);
 
-    BlinkLed *setBlinkPattern(blinkDuration_t *blinkTiming, uint8_t length);
+    BlinkLed *setBlinkPattern(blinkDuration_t *blinkTiming, const uint8_t length);
 
     /** Update Status of LED. */
     void update();
