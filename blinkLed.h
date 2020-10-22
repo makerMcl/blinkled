@@ -34,7 +34,9 @@ typedef enum
 } blinktype_t;
 
 /**
- * Two LEDs at one GPIO pin: one against Vcc, one against GND.
+ * Tristate = two LEDs at one GPIO pin: one against Vcc, one against GND.
+ * If using tristate mode, you need to specify which one shall be 
+ * activated at the activation methods.
  */
 class BlinkLed
 {
@@ -56,16 +58,25 @@ public:
     {
         init(NOT_A_PIN);
     }
+    /** Single led at given pin, active on HIGH. */
     void init(const uint8_t pin)
     {
-        init(pin, false);
+        init(pin, ACTIVE_HIGH);
     }
 
     /**
      * Initializes blinking led at the given pin.
-     * @param activeOnLow true if led is active at LOW, otherwise false (active on HIGH)
+     * 
+     * If singular led (not tristate), provide value
+     * <li>ACTIVE_LOW if single led is active at LOW</li>
+     * <li>ACTIVE_HIGH if single led is active on HIGH</li>
+     * for argument activeType.
+     * 
+     * @param activeType ACTIVE_LOW if single led is active at LOW,
+     *                   ACTIVE_HIGH if active on HIGH,
+     *                   otherwise TRISTATE_*
      */
-    void init(const uint8_t pin, const bool activeOnLow);
+    void init(const uint8_t pin, const blinktype_t activeType);
 
     /**
      * Sets blink code, alternating between <i>millisOn</i> active led and <i>millisOff</i> inactive led.
@@ -73,8 +84,23 @@ public:
      * @param millisOff 0 is on forever
      */
     BlinkLed *setBlink(const blinkDuration_t millisOn, const blinkDuration_t millisOff);
+    /** 
+     * Immediately switches any led off.
+     * Stops blinking. 
+     */
     BlinkLed *off();
+    /** 
+     * Immediately switches led on.
+     * In tristate mode, the led indicated by last on(blinktype_t)/init() method is activated.
+     * Stops blinking.
+     */
     BlinkLed *on();
+    /** 
+     * Immediately switches led on.
+     * In tristate mode, the active led is specified by the tristate mode given.
+     * Stops blinking.
+     */
+    BlinkLed *on(blinktype_t type);
 
     BlinkLed *blink(blinktype_t type, const blinkDuration_t millisOn, const blinkDuration_t millisOff);
     BlinkLed *blinkPattern4(blinktype_t type, blinkDuration_t millis[4]);

@@ -19,10 +19,10 @@
 #endif
 #include "blinkLed.h"
 
-void BlinkLed::init(uint8_t pin, bool activeOnLow)
+void BlinkLed::init(const uint8_t pin, const blinktype_t activeType)
 {
     _pin = pin;
-    _activeOn = activeOnLow ? ACTIVE_LOW : ACTIVE_HIGH;
+    _activeOn = activeType;
     if (_pin != NOT_A_PIN)
     {
         if (TRISTATE_HIGH == _activeOn || TRISTATE_LOW == _activeOn)
@@ -32,7 +32,7 @@ void BlinkLed::init(uint8_t pin, bool activeOnLow)
         else
         {
             pinMode(_pin, OUTPUT);
-            digitalWrite(_pin, _activeOn == HIGH ? LOW : HIGH);
+            digitalWrite(_pin, _activeOn == ACTIVE_HIGH ? LOW : HIGH);
         }
     }
 }
@@ -70,6 +70,12 @@ BlinkLed *BlinkLed::on()
     }
     return this;
 }
+
+BlinkLed *BlinkLed::on(blinktype_t type) {
+    _activeOn = type;
+    return on();
+}
+
 
 // LED permanently off
 BlinkLed *BlinkLed::off()
