@@ -52,7 +52,7 @@ void BlinkLed::ledOff()
 {
     if (TRISTATE_HIGH == _activeOn || TRISTATE_LOW == _activeOn)
     {
-        pinMode(_pin, INPUT); // setting pin to neither high nor low
+        pinMode(_pin, INPUT); // setting pin to neither high nor low, with pull-up/down disabled
     }
     else
     {
@@ -71,11 +71,12 @@ BlinkLed *BlinkLed::on()
     return this;
 }
 
-BlinkLed *BlinkLed::on(blinktype_t type) {
+BlinkLed *BlinkLed::on(blinktype_t type)
+{
     _activeOn = type;
+    _nextIndex = BLINKLED_INDEX_HALTED;
     return on();
 }
-
 
 // LED permanently off
 BlinkLed *BlinkLed::off()
